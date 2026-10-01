@@ -26,6 +26,19 @@ def preference_accuracy(chosen_logp, rejected_logp):
     return float((chosen_logp > rejected_logp).float().mean().item())
 
 
+def dpo_preference_margin(policy_chosen_logp, policy_rejected_logp, ref_chosen_logp, ref_rejected_logp):
+    """m_theta = [log pi_theta(y+|x) - log pi_ref(y+|x)] - [log pi_theta(y-|x) - log pi_ref(y-|x)]"""
+    policy_margin = policy_chosen_logp - policy_rejected_logp
+    ref_margin = ref_chosen_logp - ref_rejected_logp
+    return policy_margin - ref_margin
+
+
+def dpo_preference_accuracy(policy_chosen_logp, policy_rejected_logp, ref_chosen_logp, ref_rejected_logp):
+    """Fraction of pairs where m_theta > 0."""
+    margin = dpo_preference_margin(policy_chosen_logp, policy_rejected_logp, ref_chosen_logp, ref_rejected_logp)
+    return float((margin > 0).float().mean().item())
+
+
 def word_count(text: str) -> int:
     return len(re.findall(r"\b\w+\b", text))
 
