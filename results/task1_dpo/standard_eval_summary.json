@@ -1,0 +1,15 @@
+{
+  "name": "standard",
+  "adapter_path": "outputs/task1_dpo/standard",
+  "num_eval_examples": 300,
+  "dpo_loss": 0.676521064043045,
+  "preference_accuracy": 0.63,
+  "mean_implicit_margin": 0.4014779010415077,
+  "kl_mean": 0.0012797879644737501,
+  "kl_std": 0.007347310064560046,
+  "reward_score_mean": 1.1762039184570312,
+  "reward_score_std": 1.4358823246198382,
+  "response_length_mean": 157.01333333333332,
+  "response_length_std": 102.70741529001475,
+  "response_length_iqr": 207.25
+}
