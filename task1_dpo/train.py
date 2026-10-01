@@ -6,6 +6,7 @@ from pathlib import Path
 import torch
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 from common.data import (
     encode_prompt_response,
@@ -16,8 +17,9 @@ from common.data import (
     read_jsonl,
     repo_path,
 )
-from common.logging_utils import set_seed
-from common.models import load_policy, load_tokenizer, trainable_parameters
+from common.generation import response_sequence_logprobs
+from common.logging_utils import append_jsonl, save_json, set_seed, wall_timer
+from common.models import clear_gpu, load_policy, load_tokenizer, reference_mode, trainable_parameters
 from task1_dpo.dpo import dpo_loss
 
 
@@ -101,12 +103,6 @@ def run_training(
 
     accumulated_loss = 0.0
     accumulated_diag = {}
-
-    from tqdm import tqdm
-    from common.generation import response_sequence_logprobs
-    from common.models import reference_mode, clear_gpu
-    from common.logging_utils import append_jsonl, save_json
-
     print(f"Starting DPO training: run='{run_name}', examples={len(bundle['rows'])}, beta={beta_val}, epochs={epochs}")
     model.train()
 
