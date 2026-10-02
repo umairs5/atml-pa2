@@ -115,11 +115,11 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
 
         with torch.no_grad():
             gen_out = batch_generate(policy, tokenizer, pm_list, max_prompt_length, max_response_length)
-            seqs = gen_out["sequences"]
-            attn = gen_out["attention_mask"]
+            seqs = gen_out["sequences"].clone()
+            attn = gen_out["attention_mask"].clone()
             pw = gen_out["prompt_width"]
-            rids = gen_out["response_ids"]
-            rmask = gen_out["response_mask"]
+            rids = gen_out["response_ids"].clone()
+            rmask = gen_out["response_mask"].clone()
 
             old_logp, _ = response_token_logprobs(policy, seqs, attn, pw, rids)
             with reference_mode(policy):
