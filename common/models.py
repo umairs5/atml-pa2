@@ -150,7 +150,7 @@ def load_reward_model(cfg: dict):
 
 
 def load_value_model(cfg: dict, checkpoint: str, train_mode: str = "lora_head"):
-    dtype = resolve_dtype(cfg.get("dtype", "float16"))
+    dtype = resolve_dtype(cfg.get("value_dtype", "float32"))
     model = AutoModelForSequenceClassification.from_pretrained(
         str(repo_path(checkpoint)),
         num_labels=1,

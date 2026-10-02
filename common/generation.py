@@ -48,6 +48,7 @@ def batch_generate(
         "do_sample": do_sample,
         "pad_token_id": tokenizer.pad_token_id,
         "eos_token_id": tokenizer.eos_token_id,
+        "use_cache": True,
     }
     if do_sample:
         kwargs.update({"temperature": temperature, "top_p": top_p})

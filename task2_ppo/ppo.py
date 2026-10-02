@@ -44,15 +44,12 @@ def shaped_rewards(task_reward, policy_logp, ref_logp, response_mask, beta_kl):
 
 
 def ppo_policy_loss(new_logp, old_logp, advantage, mask, eps=0.2):
-    """Return PPO clipped policy loss and diagnostics.
-
-    Validate this starter implementation against the clipped surrogate in the assignment manual.
-    """
-    # Clamp log-ratio to prevent exponential overflow causing NaN gradients
-    log_ratio = torch.clamp(new_logp - old_logp, min=-20.0, max=20.0)
+    """Return PPO clipped policy loss and diagnostics."""
+    log_ratio = torch.clamp(new_logp - old_logp.detach(), min=-20.0, max=20.0)
     ratio = torch.exp(log_ratio)
-    surr1 = ratio * advantage
-    surr2 = ratio.clamp(1.0 - eps, 1.0 + eps) * advantage
+    adv = advantage.detach()
+    surr1 = ratio * adv
+    surr2 = ratio.clamp(1.0 - eps, 1.0 + eps) * adv
 
     # PPO clipped surrogate objective uses pessimistic lower bound
     objective = torch.minimum(surr1, surr2)
@@ -64,7 +61,7 @@ def ppo_policy_loss(new_logp, old_logp, advantage, mask, eps=0.2):
 
 
 def value_mse_loss(predicted_values, returns, mask):
-    diff = torch.clamp(predicted_values - returns, min=-50.0, max=50.0)
+    diff = predicted_values - returns.detach()
     return masked_mean(diff ** 2, mask)
 
 

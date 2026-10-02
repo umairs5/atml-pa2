@@ -128,8 +128,7 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
                 ref_logp, _ = response_token_logprobs(policy, seqs, attn, pw, rids)
 
             v_all = token_values(value_model, seqs, attn)
-            v_all = torch.nan_to_num(v_all.float(), nan=0.0, posinf=50.0, neginf=-50.0)
-            v_old = v_all[:, pw-1:-1][:, :rids.shape[1]]
+            v_old = v_all[:, pw-1:-1][:, :rids.shape[1]].float()
 
             rm_scores = score_reward_pairs(reward_model, reward_tokenizer, pm_list, gen_out["responses"])
             
@@ -154,8 +153,8 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
                 opt_p.zero_grad()
 
             v_all_new = token_values(value_model, seqs, attn)
-            v_new = torch.nan_to_num(v_all_new[:, pw-1:-1][:, :rids.shape[1]].float(), nan=0.0, posinf=50.0, neginf=-50.0)
-            v_loss = value_coef * value_mse_loss(v_new, returns, rmask)
+            v_new = v_all_new[:, pw-1:-1][:, :rids.shape[1]].float()
+            v_loss = value_coef * value_mse_loss(v_new, returns.float(), rmask)
             
             opt_v.zero_grad()
             v_loss.backward()
