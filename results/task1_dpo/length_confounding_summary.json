@@ -1,0 +1,60 @@
+{
+  "standard": {
+    "stratified_preference": {
+      "rejected_longer": {
+        "count": 82,
+        "preference_accuracy": 0.6585365853658537,
+        "mean_implicit_margin": 0.7723614297262053
+      },
+      "preferred_longer": {
+        "count": 82,
+        "preference_accuracy": 0.47560975609756095,
+        "mean_implicit_margin": -0.13658807335830317
+      },
+      "length_matched": {
+        "count": 82,
+        "preference_accuracy": 0.5975609756097561,
+        "mean_implicit_margin": 0.22661550379380946
+      },
+      "overall": {
+        "count": 246,
+        "preference_accuracy": 0.5772357723577236,
+        "mean_implicit_margin": 0.28746295338723715
+      }
+    },
+    "word_limit": {
+      "compliance_rate": 0.4,
+      "mean_word_count": 40.8,
+      "std_word_count": 15.071828024496565
+    }
+  },
+  "length_balanced": {
+    "stratified_preference": {
+      "rejected_longer": {
+        "count": 82,
+        "preference_accuracy": 0.7804878048780488,
+        "mean_implicit_margin": 1.4033105896740425
+      },
+      "preferred_longer": {
+        "count": 82,
+        "preference_accuracy": 0.4268292682926829,
+        "mean_implicit_margin": -0.5028487880055498
+      },
+      "length_matched": {
+        "count": 82,
+        "preference_accuracy": 0.6341463414634146,
+        "mean_implicit_margin": 0.33890786403562967
+      },
+      "overall": {
+        "count": 246,
+        "preference_accuracy": 0.6138211382113821,
+        "mean_implicit_margin": 0.4131232219013741
+      }
+    },
+    "word_limit": {
+      "compliance_rate": 0.4,
+      "mean_word_count": 41.1,
+      "std_word_count": 16.183015788165072
+    }
+  }
+}

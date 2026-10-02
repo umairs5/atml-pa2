@@ -1,0 +1,9 @@
+{
+  "run_name": "length_balanced",
+  "config_path": "configs/dpo.yaml",
+  "beta": 0.1,
+  "epochs": 1,
+  "total_updates": 94,
+  "total_wall_time_sec": 1059.1417629040006,
+  "adapter_path": "/content/atml-pa2/atml-pa2/outputs/task1_dpo/length_balanced"
+}

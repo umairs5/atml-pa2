@@ -1,0 +1,53 @@
+[
+  {
+    "name": "beta_0.03",
+    "adapter_path": "outputs/task1_dpo/beta_0.03",
+    "num_eval_examples": 300,
+    "dpo_loss": 0.6884590633710226,
+    "preference_accuracy": 0.6233333333333333,
+    "mean_implicit_margin": 0.09992271194855372,
+    "kl_mean": 0.0002905980536562917,
+    "kl_std": 0.0023423810210329767,
+    "reward_score_mean": 1.1219870630900066,
+    "reward_score_std": 1.4947305414555396,
+    "response_length_mean": 153.45,
+    "response_length_std": 104.36324784137373,
+    "response_length_iqr": 212.75,
+    "beta": 0.03,
+    "budget_examples": 600
+  },
+  {
+    "name": "beta_0.1",
+    "adapter_path": "outputs/task1_dpo/beta_0.1",
+    "num_eval_examples": 300,
+    "dpo_loss": 0.688366181453069,
+    "preference_accuracy": 0.64,
+    "mean_implicit_margin": 0.10089542572697004,
+    "kl_mean": 0.00023961720617080574,
+    "kl_std": 0.0023425051877043247,
+    "reward_score_mean": 1.2027675946553549,
+    "reward_score_std": 1.536175809796833,
+    "response_length_mean": 158.16333333333333,
+    "response_length_std": 105.95390501953617,
+    "response_length_iqr": 220.25,
+    "beta": 0.1,
+    "budget_examples": 600
+  },
+  {
+    "name": "beta_0.3",
+    "adapter_path": "outputs/task1_dpo/beta_0.3",
+    "num_eval_examples": 300,
+    "dpo_loss": 0.688541161219279,
+    "preference_accuracy": 0.63,
+    "mean_implicit_margin": 0.09687633102138837,
+    "kl_mean": 8.192012844271327e-05,
+    "kl_std": 0.002037287876829087,
+    "reward_score_mean": 1.0937456766764322,
+    "reward_score_std": 1.5271721804987537,
+    "response_length_mean": 153.17333333333335,
+    "response_length_std": 105.50717174149295,
+    "response_length_iqr": 214.0,
+    "beta": 0.3,
+    "budget_examples": 600
+  }
+]

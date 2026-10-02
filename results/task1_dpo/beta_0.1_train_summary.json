@@ -1,0 +1,9 @@
+{
+  "run_name": "beta_0.1",
+  "config_path": "configs/dpo.yaml",
+  "beta": 0.1,
+  "epochs": 1,
+  "total_updates": 38,
+  "total_wall_time_sec": 528.675135427,
+  "adapter_path": "/content/atml-pa2/atml-pa2/outputs/task1_dpo/beta_0.1"
+}

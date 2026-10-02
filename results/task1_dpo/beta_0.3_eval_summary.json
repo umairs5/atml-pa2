@@ -1,0 +1,15 @@
+{
+  "name": "beta_0.3",
+  "adapter_path": "outputs/task1_dpo/beta_0.3",
+  "num_eval_examples": 300,
+  "dpo_loss": 0.688541161219279,
+  "preference_accuracy": 0.63,
+  "mean_implicit_margin": 0.09687633102138837,
+  "kl_mean": 8.192012844271327e-05,
+  "kl_std": 0.002037287876829087,
+  "reward_score_mean": 1.0937456766764322,
+  "reward_score_std": 1.5271721804987537,
+  "response_length_mean": 153.17333333333335,
+  "response_length_std": 105.50717174149295,
+  "response_length_iqr": 214.0
+}
