@@ -64,13 +64,15 @@ def ppo_policy_loss(new_logp, old_logp, advantage, mask, eps=0.2):
 
 
 def value_mse_loss(predicted_values, returns, mask):
-    return masked_mean((predicted_values - returns) ** 2, mask)
+    diff = torch.clamp(predicted_values - returns, min=-50.0, max=50.0)
+    return masked_mean(diff ** 2, mask)
 
 
 def normalize_advantages(advantages, mask, eps=1e-6):
     valid = advantages[mask.bool()]
     if valid.numel() <= 1:
-        return advantages
+        return torch.nan_to_num(advantages * mask, nan=0.0)
     mean = valid.mean()
     std = valid.std(unbiased=False).clamp_min(eps)
-    return ((advantages - mean) / std) * mask
+    norm_adv = ((advantages - mean) / std) * mask
+    return torch.nan_to_num(norm_adv, nan=0.0)

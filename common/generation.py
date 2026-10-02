@@ -93,7 +93,8 @@ def response_token_logprobs(model, sequences, attention_mask, prompt_width, resp
     )
     logits = outputs.logits[:, prompt_width - 1 : -1, :]
     logits = logits[:, : response_ids.shape[1], :]
-    logp = F.log_softmax(logits.float(), dim=-1)
+    logits_f = torch.nan_to_num(logits.float(), nan=0.0, posinf=50.0, neginf=-50.0)
+    logp = F.log_softmax(logits_f, dim=-1)
     chosen = torch.gather(logp, -1, response_ids.unsqueeze(-1)).squeeze(-1)
     return chosen, logits
 

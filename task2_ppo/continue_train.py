@@ -78,7 +78,7 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
     from common.logging_utils import append_jsonl, wall_timer
     from common.generation import batch_generate, response_token_logprobs, score_reward_pairs
     from common.metrics import sample_entropy, masked_mean
-    from common.models import reference_mode, clear_gpu, trainable_parameters
+    from common.models import reference_mode, clear_gpu, trainable_parameters, token_values
     from task2_ppo.ppo import compute_gae, shaped_rewards, ppo_policy_loss, value_mse_loss, normalize_advantages
     
     updates = cfg.get("updates", 20)
@@ -91,6 +91,8 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
     gamma = cfg.get("gamma", 1.0)
     lam = cfg.get("gae_lambda", 0.95)
     max_grad = cfg.get("max_grad_norm", 1.0)
+
+    value_coef = cfg.get("value_coef", 0.5)
 
     policy = bundle["policy"]
     value_model = bundle["value_model"]
@@ -125,13 +127,9 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
             with reference_mode(policy):
                 ref_logp, _ = response_token_logprobs(policy, seqs, attn, pw, rids)
 
-            value_enc = {"input_ids": seqs, "attention_mask": attn}
-            v_outputs = value_model(**value_enc, output_hidden_states=True)
-            v_hidden = v_outputs.hidden_states[-1]
-            score_head = value_model.score if hasattr(value_model, "score") else value_model.base_model.model.score
-            v_logits = score_head(v_hidden).squeeze(-1)
-            v_old = v_logits[:, pw-1:-1]
-            v_old = v_old[:, :rids.shape[1]]
+            v_all = token_values(value_model, seqs, attn)
+            v_all = torch.nan_to_num(v_all.float(), nan=0.0, posinf=50.0, neginf=-50.0)
+            v_old = v_all[:, pw-1:-1][:, :rids.shape[1]]
 
             rm_scores = score_reward_pairs(reward_model, reward_tokenizer, pm_list, gen_out["responses"])
             
@@ -155,11 +153,9 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
                 print("WARNING: NaN gradient in policy! Skipping step.")
                 opt_p.zero_grad()
 
-            v_outputs_new = value_model(**value_enc, output_hidden_states=True)
-            v_hidden_new = v_outputs_new.hidden_states[-1]
-            v_logits_new = score_head(v_hidden_new).squeeze(-1)
-            v_new = v_logits_new[:, pw-1:-1][:, :rids.shape[1]].float()
-            v_loss = value_mse_loss(v_new, returns, rmask)
+            v_all_new = token_values(value_model, seqs, attn)
+            v_new = torch.nan_to_num(v_all_new[:, pw-1:-1][:, :rids.shape[1]].float(), nan=0.0, posinf=50.0, neginf=-50.0)
+            v_loss = value_coef * value_mse_loss(v_new, returns, rmask)
             
             opt_v.zero_grad()
             v_loss.backward()
