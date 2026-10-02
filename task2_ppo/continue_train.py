@@ -126,7 +126,10 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
                 ref_logp, _ = response_token_logprobs(policy, seqs, attn, pw, rids)
 
             value_enc = {"input_ids": seqs, "attention_mask": attn}
-            v_logits = value_model(**value_enc).logits.squeeze(-1)
+            v_outputs = value_model(**value_enc, output_hidden_states=True)
+            v_hidden = v_outputs.hidden_states[-1]
+            score_head = value_model.score if hasattr(value_model, "score") else value_model.base_model.model.score
+            v_logits = score_head(v_hidden).squeeze(-1)
             v_old = v_logits[:, pw-1:-1]
             v_old = v_old[:, :rids.shape[1]]
 
@@ -148,7 +151,9 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
             p_grad = torch.nn.utils.clip_grad_norm_(trainable_parameters(policy), max_grad)
             opt_p.step()
 
-            v_logits_new = value_model(**value_enc).logits.squeeze(-1)
+            v_outputs_new = value_model(**value_enc, output_hidden_states=True)
+            v_hidden_new = v_outputs_new.hidden_states[-1]
+            v_logits_new = score_head(v_hidden_new).squeeze(-1)
             v_new = v_logits_new[:, pw-1:-1][:, :rids.shape[1]]
             v_loss = value_mse_loss(v_new, returns, rmask)
             
