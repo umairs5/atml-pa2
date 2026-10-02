@@ -8,7 +8,7 @@ import torch
 from common.data import load_yaml, prompt_messages, read_jsonl, repo_path, write_jsonl
 from common.generation import batch_generate, response_token_logprobs, score_reward_pairs
 from common.logging_utils import save_json, set_seed
-from common.metrics import sampled_kl
+from common.metrics import sample_entropy, sampled_kl
 from common.models import clear_gpu, load_policy, load_reward_model, load_tokenizer, reference_mode
 
 
@@ -56,6 +56,7 @@ def run_evaluation(
     gen_records = []
     rewards = []
     kl_values = []
+    entropies = []
     lengths = []
     eos_terminated = []
     truncated_flags = []
@@ -91,6 +92,7 @@ def run_evaluation(
             for b in range(len(chunk)):
                 m = rmask[b]
                 kl = sampled_kl(pol_logp[b], ref_logp[b], m).item()
+                ent = sample_entropy(pol_logp[b], m).item()
                 r_val = float(rm_scores[b].item())
                 l_val = int(m.sum().item())
                 is_eos = gen_out["terminated_with_eos"][b]
@@ -98,6 +100,7 @@ def run_evaluation(
 
                 rewards.append(r_val)
                 kl_values.append(kl)
+                entropies.append(ent)
                 lengths.append(l_val)
                 eos_terminated.append(is_eos)
                 truncated_flags.append(is_trunc)
@@ -109,6 +112,7 @@ def run_evaluation(
                     "response": gen_out["responses"][b],
                     "reward": r_val,
                     "sampled_kl": kl,
+                    "entropy": ent,
                     "response_length": l_val,
                     "terminated_with_eos": is_eos,
                     "truncated": is_trunc,
@@ -127,6 +131,9 @@ def run_evaluation(
     kl_mean = float(np.mean(kl_values)) if kl_values else 0.0
     kl_std = float(np.std(kl_values)) if kl_values else 0.0
 
+    ent_mean = float(np.mean(entropies)) if entropies else 0.0
+    ent_std = float(np.std(entropies)) if entropies else 0.0
+
     eos_rate = float(np.mean(eos_terminated)) if eos_terminated else 0.0
     trunc_rate = float(np.mean(truncated_flags)) if truncated_flags else 0.0
 
@@ -138,6 +145,8 @@ def run_evaluation(
         "reward_std": rew_std,
         "kl_mean": kl_mean,
         "kl_std": kl_std,
+        "entropy_mean": ent_mean,
+        "entropy_std": ent_std,
         "response_length_mean": len_mean,
         "response_length_std": len_std,
         "response_length_iqr": len_iqr,
