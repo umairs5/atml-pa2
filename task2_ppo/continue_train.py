@@ -149,18 +149,26 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
             opt_p.zero_grad()
             p_loss.backward()
             p_grad = torch.nn.utils.clip_grad_norm_(trainable_parameters(policy), max_grad)
-            opt_p.step()
+            if not torch.isnan(p_grad) and not torch.isinf(p_grad):
+                opt_p.step()
+            else:
+                print("WARNING: NaN gradient in policy! Skipping step.")
+                opt_p.zero_grad()
 
             v_outputs_new = value_model(**value_enc, output_hidden_states=True)
             v_hidden_new = v_outputs_new.hidden_states[-1]
             v_logits_new = score_head(v_hidden_new).squeeze(-1)
-            v_new = v_logits_new[:, pw-1:-1][:, :rids.shape[1]]
+            v_new = v_logits_new[:, pw-1:-1][:, :rids.shape[1]].float()
             v_loss = value_mse_loss(v_new, returns, rmask)
             
             opt_v.zero_grad()
             v_loss.backward()
             v_grad = torch.nn.utils.clip_grad_norm_(trainable_parameters(value_model), max_grad)
-            opt_v.step()
+            if not torch.isnan(v_grad) and not torch.isinf(v_grad):
+                opt_v.step()
+            else:
+                print("WARNING: NaN gradient in value model! Skipping step.")
+                opt_v.zero_grad()
 
         kl_mean = masked_mean(old_logp - ref_logp, rmask).item()
         record = {
