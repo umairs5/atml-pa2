@@ -1,0 +1,17 @@
+{
+  "eps_0.05": {
+    "clip_epsilon": 0.05,
+    "clip_fraction": 0.1366,
+    "total_tokens_evaluated": 32
+  },
+  "eps_0.2": {
+    "clip_epsilon": 0.20,
+    "clip_fraction": 0.0026,
+    "total_tokens_evaluated": 32
+  },
+  "eps_0.5": {
+    "clip_epsilon": 0.50,
+    "clip_fraction": 0.0000,
+    "total_tokens_evaluated": 32
+  }
+}

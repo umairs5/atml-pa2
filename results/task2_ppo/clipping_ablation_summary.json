@@ -1,0 +1,26 @@
+{
+  "eps_0.05": {
+    "clip_epsilon": 0.05,
+    "mean_reward": 0.981,
+    "mean_kl": -0.0003,
+    "mean_entropy": 0.910,
+    "mean_clip_fraction": 0.0000,
+    "max_grad_norm": 4.264
+  },
+  "eps_0.2": {
+    "clip_epsilon": 0.20,
+    "mean_reward": 0.981,
+    "mean_kl": -0.0003,
+    "mean_entropy": 0.910,
+    "mean_clip_fraction": 0.0000,
+    "max_grad_norm": 4.264
+  },
+  "eps_0.5": {
+    "clip_epsilon": 0.50,
+    "mean_reward": 0.981,
+    "mean_kl": -0.0003,
+    "mean_entropy": 0.910,
+    "mean_clip_fraction": 0.0000,
+    "max_grad_norm": 4.264
+  }
+}

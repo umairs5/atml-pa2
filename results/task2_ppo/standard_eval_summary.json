@@ -1,0 +1,14 @@
+{
+  "name": "standard",
+  "adapter_path": "outputs/task2_ppo/standard",
+  "num_eval_prompts": 200,
+  "reward_mean": 1.252,
+  "reward_std": 1.909,
+  "kl_mean": 0.0000,
+  "kl_std": 0.0008,
+  "response_length_mean": 294.0,
+  "response_length_std": 249.1,
+  "response_length_iqr": 421.8,
+  "eos_termination_rate": 0.920,
+  "truncation_rate_at_cap": 0.080
+}

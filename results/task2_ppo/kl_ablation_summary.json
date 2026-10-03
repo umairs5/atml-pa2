@@ -1,0 +1,32 @@
+{
+  "beta_0.0": {
+    "kl_beta": 0.0,
+    "final_reward": 1.506,
+    "mean_reward": 0.613,
+    "final_kl": -0.0003,
+    "mean_kl": -0.0003,
+    "mean_entropy": 0.847,
+    "mean_response_length": 217.5,
+    "max_grad_norm": 2.540
+  },
+  "beta_0.1": {
+    "kl_beta": 0.1,
+    "final_reward": 1.830,
+    "mean_reward": 0.981,
+    "final_kl": 0.0001,
+    "mean_kl": 0.0001,
+    "mean_entropy": 0.910,
+    "mean_response_length": 175.4,
+    "max_grad_norm": 4.264
+  },
+  "beta_0.2": {
+    "kl_beta": 0.2,
+    "final_reward": 1.476,
+    "mean_reward": 0.557,
+    "final_kl": -0.0006,
+    "mean_kl": -0.0006,
+    "mean_entropy": 0.924,
+    "mean_response_length": 195.1,
+    "max_grad_norm": 3.520
+  }
+}

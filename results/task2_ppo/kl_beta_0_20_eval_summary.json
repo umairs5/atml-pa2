@@ -1,0 +1,14 @@
+{
+  "name": "kl_beta_0_20",
+  "adapter_path": "outputs/task2_ppo/kl_beta_0_20",
+  "num_eval_prompts": 200,
+  "reward_mean": 1.346,
+  "reward_std": 1.814,
+  "kl_mean": -0.0001,
+  "kl_std": 0.0006,
+  "response_length_mean": 289.1,
+  "response_length_std": 248.4,
+  "response_length_iqr": 406.5,
+  "eos_termination_rate": 0.915,
+  "truncation_rate_at_cap": 0.085
+}
