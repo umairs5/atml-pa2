@@ -1,0 +1,85 @@
+{
+  "metadata": {
+    "total_prompts": 24,
+    "total_cached_generations": 192,
+    "median_reward_split": 2.19873046875,
+    "binning_rule": "Prompts split at median 8-completion mean reward into Easy vs Hard"
+  },
+  "group_sizes": {
+    "k_2": {
+      "k": 2,
+      "total_groups": 96,
+      "total_generations": 192,
+      "informative_group_rate": 0.9375,
+      "uninformative_group_rate": 0.0625,
+      "mean_reward_std": 0.3845672607421875,
+      "signal_variance": 0.9374814173564774,
+      "difficulty_bins": {
+        "easy": {
+          "num_groups": 48,
+          "informative_group_rate": 0.9791666666666666,
+          "uninformative_group_rate": 0.02083333333333337,
+          "mean_reward_std": 0.24080403645833334,
+          "signal_variance": 0.979136472440144
+        },
+        "hard": {
+          "num_groups": 48,
+          "informative_group_rate": 0.8958333333333334,
+          "uninformative_group_rate": 0.10416666666666663,
+          "mean_reward_std": 0.5283304850260416,
+          "signal_variance": 0.8958263622728104
+        }
+      }
+    },
+    "k_4": {
+      "k": 4,
+      "total_groups": 48,
+      "total_generations": 192,
+      "informative_group_rate": 0.9583333333333334,
+      "uninformative_group_rate": 0.04166666666666663,
+      "mean_reward_std": 0.5410043647319412,
+      "signal_variance": 0.9583276282884473,
+      "difficulty_bins": {
+        "easy": {
+          "num_groups": 24,
+          "informative_group_rate": 1.0,
+          "uninformative_group_rate": 0.0,
+          "mean_reward_std": 0.37050239855472933,
+          "signal_variance": 0.999992164879277
+        },
+        "hard": {
+          "num_groups": 24,
+          "informative_group_rate": 0.9166666666666666,
+          "uninformative_group_rate": 0.08333333333333337,
+          "mean_reward_std": 0.711506330909153,
+          "signal_variance": 0.9166630916976176
+        }
+      }
+    },
+    "k_8": {
+      "k": 8,
+      "total_groups": 24,
+      "total_generations": 192,
+      "informative_group_rate": 0.9583333333333334,
+      "uninformative_group_rate": 0.04166666666666663,
+      "mean_reward_std": 0.6190544134665206,
+      "signal_variance": 0.9583290996055105,
+      "difficulty_bins": {
+        "easy": {
+          "num_groups": 12,
+          "informative_group_rate": 1.0,
+          "uninformative_group_rate": 0.0,
+          "mean_reward_std": 0.4378600921759388,
+          "signal_variance": 0.9999940581978564
+        },
+        "hard": {
+          "num_groups": 12,
+          "informative_group_rate": 0.9166666666666666,
+          "uninformative_group_rate": 0.08333333333333337,
+          "mean_reward_std": 0.8002487347571022,
+          "signal_variance": 0.9166641410131647
+        }
+      }
+    }
+  }
+}

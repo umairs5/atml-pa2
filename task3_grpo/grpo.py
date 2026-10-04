@@ -9,15 +9,16 @@ def group_relative_advantages(rewards: torch.Tensor, group_ids: torch.Tensor, ep
     """Return one scalar advantage per sampled completion.
 
     `group_ids[i]` identifies which prompt produced reward `rewards[i]`.
-    Validate this implementation against the group-relative definition in the assignment manual.
+    Uses the group-relative definition: A_k = (r_k - mu_r) / (sigma_r + eps)
     """
+    rewards = rewards.detach()
     advantages = torch.zeros_like(rewards)
     for group_id in torch.unique(group_ids):
         mask = (group_ids == group_id)
         group_rewards = rewards[mask]
         mean = group_rewards.mean()
-        std = group_rewards.std(unbiased=False).clamp_min(eps)
-        advantages[mask] = (group_rewards - mean) / std
+        std = group_rewards.std(unbiased=False)
+        advantages[mask] = (group_rewards - mean) / (std + eps)
     return advantages
 
 
@@ -37,8 +38,8 @@ def grpo_policy_loss(
     `token_mask` may be all-zero for a completion that was deliberately masked because it hit the
     maximum generation length.
     """
-    ratio = torch.exp(new_logp - old_logp)
-    adv = seq_adv[:, None]
+    ratio = torch.exp(torch.clamp(new_logp - old_logp.detach(), min=-20.0, max=20.0))
+    adv = seq_adv.detach()[:, None]
     s1 = ratio * adv
     s2 = ratio.clamp(1.0 - eps, 1.0 + eps) * adv
     objective = torch.minimum(s1, s2)
@@ -47,17 +48,22 @@ def grpo_policy_loss(
     if loss_type == "grpo":
         denom = token_mask.sum(-1).clamp_min(1.0)
         per_sequence = token_sum / denom
-        policy_term = -per_sequence.mean()
     elif loss_type == "dr_grpo":
         if max_completion_length is None:
             raise ValueError("dr_grpo requires max_completion_length")
         # Constant normalization rather than dividing by each response's realized length.
         per_sequence = token_sum / float(max_completion_length)
-        policy_term = -per_sequence.mean()
     else:
         raise ValueError(f"Unknown loss_type={loss_type!r}")
 
-    log_ratio_ref_over_policy = ref_logp - new_logp
+    # Only average policy_term over valid (non-masked) sequences
+    valid_seq_mask = (token_mask.sum(-1) > 0).float()
+    if valid_seq_mask.sum() > 0:
+        policy_term = -(per_sequence * valid_seq_mask).sum() / valid_seq_mask.sum()
+    else:
+        policy_term = -per_sequence.mean()
+
+    log_ratio_ref_over_policy = ref_logp.detach() - new_logp
     per_token_kl = torch.exp(log_ratio_ref_over_policy) - log_ratio_ref_over_policy - 1.0
     kl = masked_mean(per_token_kl, token_mask)
     loss = policy_term + float(beta) * kl
