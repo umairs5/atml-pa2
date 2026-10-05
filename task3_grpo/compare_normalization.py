@@ -5,8 +5,9 @@ from pathlib import Path
 import numpy as np
 
 from common.data import load_yaml, read_jsonl, repo_path
-from common.logging_utils import save_json
+from common.logging_utils import load_json, save_json
 from task3_grpo.continue_train import run_grpo
+from task3_grpo.evaluate import run_evaluation
 
 
 def run_normalization_comparison(config_path: str, skip_training: bool = False):
@@ -39,12 +40,16 @@ def run_normalization_comparison(config_path: str, skip_training: bool = False):
                 loss_type=loss_type,
                 run_name=run_name,
             )
+            eval_summary = run_evaluation(
+                config_path=config_path,
+                adapter=out_dir,
+                name=run_name,
+            )
         else:
             summary_path = results_dir / f"{run_name}_train_summary.json"
-            if summary_path.exists():
-                summary = load_yaml(str(summary_path))
-            else:
-                summary = {}
+            eval_path = results_dir / f"{run_name}_eval_summary.json"
+            summary = load_json(summary_path) if summary_path.exists() else {}
+            eval_summary = load_json(eval_path) if eval_path.exists() else {}
 
         history_file = repo_path("outputs/task3_grpo") / f"{run_name}_train_history.jsonl"
         length_stats = {}
@@ -56,18 +61,11 @@ def run_normalization_comparison(config_path: str, skip_training: bool = False):
             grad_norms = [r["grad_norm"] for r in records]
             entropies = [r["entropy"] for r in records]
 
-            # Length-conditioned gradient weight analysis:
-            # Under canonical GRPO, token weight is 1/T_k. Under Dr. GRPO, token weight is 1/L_max.
-            # Compare the relative token weight allocation:
-            max_comp_len = float(cfg.get("max_completion_length", 512))
-            mean_len = float(np.mean(lengths)) if lengths else 1.0
+            mean_len = float(np.mean(lengths)) if lengths else None
 
-            if loss_type == "grpo":
-                weight_per_token_mean = 1.0 / max(mean_len, 1.0)
-                length_bias_factor = max_comp_len / max(mean_len, 1.0)
-            else:
-                weight_per_token_mean = 1.0 / max_comp_len
-                length_bias_factor = 1.0
+            def average_optional(key):
+                values = [float(r[key]) for r in records if r.get(key) is not None]
+                return float(np.mean(values)) if values else None
 
             length_stats = {
                 "mean_reward": float(np.mean(rewards)) if rewards else None,
@@ -76,8 +74,9 @@ def run_normalization_comparison(config_path: str, skip_training: bool = False):
                 "mean_entropy": float(np.mean(entropies)) if entropies else None,
                 "mean_response_length": mean_len,
                 "max_grad_norm": float(np.max(grad_norms)) if grad_norms else None,
-                "token_gradient_weight_proxy": round(weight_per_token_mean, 6),
-                "relative_short_sequence_gradient_bias": round(length_bias_factor, 2),
+                "mean_short_token_weight": average_optional("short_token_weight"),
+                "mean_long_token_weight": average_optional("long_token_weight"),
+                "mean_short_to_long_token_weight": average_optional("short_to_long_token_weight"),
             }
 
         fork_summaries[run_name] = {
@@ -85,6 +84,9 @@ def run_normalization_comparison(config_path: str, skip_training: bool = False):
             "loss_type": loss_type,
             "description": fork["desc"],
             "updates": fork_updates,
+            "heldout_reward_mean": eval_summary.get("reward_mean"),
+            "heldout_kl_mean": eval_summary.get("kl_mean"),
+            "heldout_response_length_mean": eval_summary.get("response_length_mean"),
             **length_stats,
         }
 
@@ -92,14 +94,15 @@ def run_normalization_comparison(config_path: str, skip_training: bool = False):
     save_json(comparison_file, fork_summaries)
 
     print("\n=== GRPO Sequence Normalization Comparison Summary ===")
-    print(f"{'Condition':<25} | {'Reward':<10} | {'KL':<10} | {'Length':<10} | {'Short-Bias Factor':<18}")
-    print("-" * 80)
+    print(f"{'Condition':<25} | {'Held-out reward':<15} | {'Held-out KL':<12} | {'Held-out length':<15} | {'Short/long weight':<17}")
+    print("-" * 105)
     for k, s in fork_summaries.items():
-        rew = f"{s.get('mean_reward', 0.0):.3f}" if s.get('mean_reward') is not None else "N/A"
-        kl = f"{s.get('mean_kl', 0.0):.4f}" if s.get('mean_kl') is not None else "N/A"
-        l = f"{s.get('mean_response_length', 0.0):.1f}" if s.get('mean_response_length') is not None else "N/A"
-        bias = f"{s.get('relative_short_sequence_gradient_bias', 1.0):.2f}x"
-        print(f"{s['description']:<25} | {rew:<10} | {kl:<10} | {l:<10} | {bias:<18}")
+        rew = f"{s.get('heldout_reward_mean', 0.0):.3f}" if s.get('heldout_reward_mean') is not None else "N/A"
+        kl = f"{s.get('heldout_kl_mean', 0.0):.4f}" if s.get('heldout_kl_mean') is not None else "N/A"
+        length = f"{s.get('heldout_response_length_mean', 0.0):.1f}" if s.get('heldout_response_length_mean') is not None else "N/A"
+        weight_ratio = s.get("mean_short_to_long_token_weight")
+        ratio = f"{weight_ratio:.2f}x" if weight_ratio is not None else "N/A"
+        print(f"{s['description']:<25} | {rew:<15} | {kl:<12} | {length:<15} | {ratio:<17}")
 
     print(f"\nSaved normalization comparison summary to: {comparison_file}")
     return fork_summaries

@@ -8,7 +8,7 @@ import torch
 from common.data import load_yaml, prompt_messages, read_jsonl, repo_path, write_jsonl
 from common.generation import batch_generate, response_token_logprobs, score_reward_pairs
 from common.logging_utils import save_json, set_seed
-from common.metrics import sample_entropy, sampled_kl
+from common.metrics import sampled_kl, token_entropy
 from common.models import clear_gpu, load_policy, load_reward_model, load_tokenizer, reference_mode
 
 
@@ -49,6 +49,7 @@ def run_evaluation(
 
     max_prompt_length = int(cfg.get("max_prompt_length", 256))
     max_new_tokens = int(cfg.get("eval_max_response_length", 768))
+    gen_cfg = cfg.get("generation", {})
 
     print(f"\n--- Evaluating GRPO policy '{name}' on {len(rows)} held-out prompts ---")
 
@@ -71,7 +72,10 @@ def run_evaluation(
                 tokenizer,
                 pm_list,
                 max_prompt_length=max_prompt_length,
-                max_response_length=max_new_tokens,
+                max_new_tokens=max_new_tokens,
+                temperature=float(gen_cfg.get("temperature", 0.7)),
+                top_p=float(gen_cfg.get("top_p", 0.9)),
+                do_sample=bool(gen_cfg.get("do_sample", True)),
             )
 
             seqs = gen_out["sequences"]
@@ -84,7 +88,7 @@ def run_evaluation(
 
             scores = score_reward_pairs(rm_model, rm_tok, pm_list, responses)
 
-            pol_lp, _ = response_token_logprobs(policy, seqs, attn, pw, rids)
+            pol_lp, pol_logits = response_token_logprobs(policy, seqs, attn, pw, rids)
             with reference_mode(policy):
                 ref_lp, _ = response_token_logprobs(policy, seqs, attn, pw, rids)
 
@@ -99,7 +103,7 @@ def run_evaluation(
                 m_b = m.unsqueeze(0)
 
                 kl_val = float(sampled_kl(p_lp_b, r_lp_b, m_b).item())
-                ent_val = float(sample_entropy(p_lp_b, m_b).item())
+                ent_val = float(token_entropy(pol_logits[b : b + 1], m_b).item())
 
                 rewards.append(r_score)
                 kl_values.append(kl_val)

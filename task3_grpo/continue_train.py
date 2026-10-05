@@ -10,7 +10,7 @@ from torch.optim import AdamW
 from common.data import load_yaml, prompt_messages, read_jsonl, repo_path
 from common.generation import batch_generate, response_token_logprobs, score_reward_pairs
 from common.logging_utils import append_jsonl, save_json, set_seed, wall_timer
-from common.metrics import masked_mean, mean_response_length, sample_entropy, sampled_kl
+from common.metrics import mean_response_length, token_entropy
 from common.models import clear_gpu, load_policy, load_reward_model, load_tokenizer, reference_mode, trainable_parameters
 from task3_grpo.grpo import group_relative_advantages, grpo_policy_loss, mask_truncated_sequences
 
@@ -35,6 +35,55 @@ def prepare_grpo_continuation(config_path: str):
         "reward_tokenizer": reward_tokenizer,
         "prompt_rows": prompts,
         "optimizer": optimizer,
+    }
+
+
+def length_normalization_statistics(
+    token_mask: torch.Tensor,
+    loss_type: str,
+    max_completion_length: int,
+) -> dict[str, float | int | None]:
+    """Summarize the per-token objective weight allocated to short/long responses.
+
+    Canonical GRPO gives each valid token in a completion weight ``1 / T_k``;
+    Dr. GRPO instead uses ``1 / L_max``.  The common batch-average factor is
+    omitted because it is identical for both length bins and conditions.
+    """
+    lengths = token_mask.sum(-1)
+    valid = lengths > 0
+    lengths = lengths[valid].float()
+    if lengths.numel() == 0:
+        return {
+            "valid_sequences": 0,
+            "length_median": None,
+            "short_sequences": 0,
+            "long_sequences": 0,
+            "short_token_weight": None,
+            "long_token_weight": None,
+            "short_to_long_token_weight": None,
+        }
+
+    if loss_type == "grpo":
+        token_weights = lengths.reciprocal()
+    elif loss_type == "dr_grpo":
+        token_weights = torch.full_like(lengths, 1.0 / float(max_completion_length))
+    else:
+        raise ValueError(f"Unknown loss_type={loss_type!r}")
+
+    median = torch.median(lengths)
+    short = lengths <= median
+    long = lengths > median
+    short_weight = token_weights[short].mean()
+    long_weight = token_weights[long].mean() if long.any() else None
+    ratio = (short_weight / long_weight).item() if long_weight is not None else None
+    return {
+        "valid_sequences": int(lengths.numel()),
+        "length_median": float(median.item()),
+        "short_sequences": int(short.sum().item()),
+        "long_sequences": int(long.sum().item()),
+        "short_token_weight": float(short_weight.item()),
+        "long_token_weight": float(long_weight.item()) if long_weight is not None else None,
+        "short_to_long_token_weight": float(ratio) if ratio is not None else None,
     }
 
 
@@ -109,7 +158,7 @@ def run_grpo(
                 tokenizer,
                 pm_list,
                 max_prompt_length=max_prompt_length,
-                max_response_length=max_completion_length,
+                max_new_tokens=max_completion_length,
             )
             seqs = gen_out["sequences"].clone()
             attn = gen_out["attention_mask"].clone()
@@ -154,7 +203,7 @@ def run_grpo(
         # Policy optimization step
         policy.train()
         for _ in range(policy_epochs):
-            new_logp, _ = response_token_logprobs(policy, seqs, attn, pw, rids)
+            new_logp, new_logits = response_token_logprobs(policy, seqs, attn, pw, rids)
             loss, diag = grpo_policy_loss(
                 new_logp=new_logp,
                 old_logp=old_logp,
@@ -179,11 +228,12 @@ def run_grpo(
         # Step metrics
         mean_rew = float(rewards.mean().item())
         mean_kl = float(diag["sampled_kl"].item())
-        mean_ent = float(diag["sample_entropy"].item())
+        mean_ent = float(token_entropy(new_logits.detach(), rmask).item())
         mean_len = mean_response_length(rmask)
         clip_frac = float(diag["clip_fraction"].item())
         p_loss_val = float(diag["policy_term"].item())
         gnorm_val = float(grad_norm.item()) if hasattr(grad_norm, "item") else float(grad_norm)
+        length_stats = length_normalization_statistics(rmask, loss_type, max_completion_length)
 
         record = {
             "step": step,
@@ -196,6 +246,7 @@ def run_grpo(
             "clip_fraction": round(clip_frac, 4),
             "response_length": round(mean_len, 1),
             "grad_norm": round(gnorm_val, 4),
+            **length_stats,
         }
         history_records.append(record)
         append_jsonl(history_file, record)

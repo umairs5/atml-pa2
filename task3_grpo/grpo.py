@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import torch
 
-from common.metrics import masked_mean, sampled_kl, sample_entropy
+from common.metrics import masked_mean
 
 
 def group_relative_advantages(rewards: torch.Tensor, group_ids: torch.Tensor, eps: float = 1e-6):
@@ -73,7 +73,6 @@ def grpo_policy_loss(
         "sampled_kl": kl.detach(),
         "clip_fraction": masked_mean(affected, token_mask).detach(),
         "ratio_mean": masked_mean(ratio.detach(), token_mask),
-        "sample_entropy": sample_entropy(new_logp.detach(), token_mask),
     }
 
 
