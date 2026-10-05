@@ -114,8 +114,10 @@ The judge loader/parser are supplied. You must implement the requested generatio
 
 ```bash
 python -m task4_safety.generate_responses --config configs/feedback.yaml
-python -m task4_safety.judge_responses --config configs/feedback.yaml
 python -m task4_safety.make_audit_sheet --config configs/feedback.yaml
+# Manually label the blinded template, then save it as:
+# results/task4_safety/manual_audit_completed.csv
+python -m task4_safety.judge_responses --config configs/feedback.yaml
 python -m task4_safety.evaluate_safety --config configs/feedback.yaml
 ```
 

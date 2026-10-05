@@ -8,8 +8,8 @@ from pathlib import Path
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
-from common.data import load_yaml, read_jsonl
-from common.models import resolve_dtype
+from common.data import load_yaml, read_jsonl, repo_path
+from common.models import clear_gpu, resolve_dtype
 
 LABELS = {
     "SAFE_ANSWER",
@@ -102,20 +102,103 @@ def judge_one(tok, model, prompt, response, max_new_tokens=64):
     return parse_json(generated)
 
 
+def _result_dir(cfg) -> Path:
+    return repo_path(cfg["results_dir"]) / "task4_safety"
+
+
+def _row_key(row: dict) -> tuple[str, int]:
+    return str(row["policy"]), int(row["xstest_id"])
+
+
+def judge_file(cfg: dict, input_path: str | Path, output_path: str | Path, overwrite: bool = False):
+    """Judge a generated-response file, resuming safely from prior cached labels."""
+    input_rows = read_jsonl(input_path)
+    if not input_rows:
+        raise ValueError(f"No generated responses found in {input_path}")
+
+    output_path = repo_path(output_path)
+    prior_rows = read_jsonl(output_path) if output_path.exists() and not overwrite else []
+    completed = {_row_key(row): row for row in prior_rows}
+    pending = [row for row in input_rows if _row_key(row) not in completed]
+
+    if not pending:
+        print(f"Using existing judge labels: {output_path}")
+        return output_path
+
+    expected_policy = str(input_rows[0]["policy"])
+    if any(str(row.get("policy")) != expected_policy for row in input_rows):
+        raise ValueError(f"Input {input_path} mixes policy names")
+
+    tok, model = load_judge(cfg)
+    try:
+        # Write each newly completed record immediately so a Colab interruption
+        # does not discard an expensive judge pass.
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        mode = "w" if overwrite else "a"
+        with output_path.open(mode, encoding="utf-8") as stream:
+            for index, row in enumerate(pending, start=1):
+                verdict = judge_one(
+                    tok,
+                    model,
+                    row["prompt"],
+                    row["response"],
+                    max_new_tokens=int(cfg["judge_max_new_tokens"]),
+                )
+                judged = {
+                    **row,
+                    "judge_label": verdict["label"],
+                    "judge_confidence": verdict["confidence"],
+                    "judge_rationale_tag": verdict["rationale_tag"],
+                }
+                stream.write(json.dumps(judged, ensure_ascii=False) + "\n")
+                stream.flush()
+                if index % 20 == 0 or index == len(pending):
+                    print(f"Judged {index}/{len(pending)} new responses for {expected_policy}")
+    finally:
+        clear_gpu(model)
+
+    all_rows = read_jsonl(output_path)
+    if len(all_rows) != len(input_rows):
+        raise RuntimeError(f"Judge output has {len(all_rows)} rows; expected {len(input_rows)}")
+    if len({_row_key(row) for row in all_rows}) != len(all_rows):
+        raise RuntimeError(f"Judge output contains duplicate policy/XSTest pairs: {output_path}")
+    print(f"Saved judge labels to: {output_path}")
+    return output_path
+
+
+def judge_all_policies(cfg: dict, policies: list[str] | None = None, overwrite: bool = False):
+    outdir = _result_dir(cfg)
+    selected = policies or ["sft", "dpo", "ppo", "grpo"]
+    outputs = {}
+    for policy in selected:
+        generated = outdir / f"generated_{policy}.jsonl"
+        if not generated.exists():
+            raise FileNotFoundError(f"Generate responses first: {generated}")
+        outputs[policy] = judge_file(
+            cfg,
+            generated,
+            outdir / f"judged_{policy}.jsonl",
+            overwrite=overwrite,
+        )
+    return outputs
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default="configs/feedback.yaml")
-    ap.add_argument("--input", help="Optional generated JSONL file to inspect")
+    ap.add_argument("--input", help="Optional generated JSONL file to judge")
+    ap.add_argument("--output", help="Output JSONL path when --input is supplied")
+    ap.add_argument("--policies", nargs="+", choices=["sft", "dpo", "ppo", "grpo"])
+    ap.add_argument("--overwrite", action="store_true")
     args = ap.parse_args()
     cfg = load_yaml(args.config)
-    tok, model = load_judge(cfg)
-    print("Fixed Task 4 judge loaded:", cfg["ai_judge_model"])
     if args.input:
-        rows = read_jsonl(args.input)
-        print("Input rows:", len(rows))
-    raise NotImplementedError(
-        "TODO(student): apply judge_one to your frozen-policy response files, cache the labels, and implement the required Task 4 aggregation."
-    )
+        if not args.output:
+            raise ValueError("--output is required when using --input")
+        judge_file(cfg, args.input, args.output, overwrite=args.overwrite)
+    else:
+        outputs = judge_all_policies(cfg, policies=args.policies, overwrite=args.overwrite)
+        print("Judged files:", {name: str(path) for name, path in outputs.items()})
 
 
 if __name__ == "__main__":
