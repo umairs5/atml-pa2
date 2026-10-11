@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-import numpy as np
 import torch
 
-from common.data import load_yaml, read_jsonl, repo_path
+from common.data import load_yaml, repo_path
 from common.logging_utils import save_json
 from task2_ppo.continue_train import run_ppo
 from task2_ppo.evaluate import run_evaluation

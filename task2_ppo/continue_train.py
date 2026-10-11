@@ -109,7 +109,7 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
     import torch
     from common.logging_utils import append_jsonl, wall_timer
     from common.generation import batch_generate, response_token_logprobs, score_reward_pairs
-    from common.metrics import sample_entropy, masked_mean
+    from common.metrics import masked_mean, token_entropy
     from common.models import reference_mode, clear_gpu, trainable_parameters, token_values
     from task2_ppo.ppo import compute_gae, shaped_rewards, ppo_policy_loss, value_mse_loss, normalize_advantages
     
@@ -175,7 +175,7 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
         value_model.train()
 
         for _ in range(ppo_epochs):
-            new_logp, _ = response_token_logprobs(policy, seqs, attn, pw, rids)
+            new_logp, new_logits = response_token_logprobs(policy, seqs, attn, pw, rids)
             p_loss, ratio, clip_frac = ppo_policy_loss(new_logp, old_logp, norm_adv, rmask, clip_eps)
 
             opt_p.zero_grad()
@@ -207,7 +207,7 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
             "kl_mean": kl_mean,
             "policy_loss": p_loss.item(),
             "value_loss": v_loss.item(),
-            "entropy": sample_entropy(new_logp.detach(), rmask).item(),
+            "entropy": token_entropy(new_logits.detach(), rmask).item(),
             "clip_fraction": clip_frac.item(),
             "response_length": rmask.sum(-1).mean().item(),
             "grad_norm": float(p_grad),

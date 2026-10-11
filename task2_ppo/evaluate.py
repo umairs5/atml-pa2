@@ -8,7 +8,7 @@ import torch
 from common.data import load_yaml, prompt_messages, read_jsonl, repo_path, write_jsonl
 from common.generation import batch_generate, response_token_logprobs, score_reward_pairs
 from common.logging_utils import save_json, set_seed
-from common.metrics import sample_entropy, sampled_kl
+from common.metrics import sampled_kl, token_entropy
 from common.models import clear_gpu, load_policy, load_reward_model, load_tokenizer, reference_mode
 
 
@@ -83,7 +83,7 @@ def run_evaluation(
             rids = gen_out["response_ids"]
             rmask = gen_out["response_mask"]
 
-            pol_logp, _ = response_token_logprobs(policy, seqs, attn, pw, rids)
+            pol_logp, pol_logits = response_token_logprobs(policy, seqs, attn, pw, rids)
             with reference_mode(policy):
                 ref_logp, _ = response_token_logprobs(policy, seqs, attn, pw, rids)
 
@@ -92,7 +92,7 @@ def run_evaluation(
             for b in range(len(chunk)):
                 m = rmask[b]
                 kl = sampled_kl(pol_logp[b], ref_logp[b], m).item()
-                ent = sample_entropy(pol_logp[b], m).item()
+                ent = token_entropy(pol_logits[b : b + 1], m.unsqueeze(0)).item()
                 r_val = float(rm_scores[b].item())
                 l_val = int(m.sum().item())
                 is_eos = gen_out["terminated_with_eos"][b]
