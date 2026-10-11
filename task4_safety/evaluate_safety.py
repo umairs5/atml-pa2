@@ -113,7 +113,11 @@ def manual_audit_summary(cfg: dict, judged_rows: pd.DataFrame, manual_audit: str
     if completed["audit_row_id"].duplicated().any():
         raise ValueError("Manual audit has duplicate audit_row_id values")
 
-    merged = completed.merge(key, on="audit_row_id", how="inner", validate="one_to_one")
+    # The blinded template includes prompt metadata (including ``xstest_id``), while
+    # the hidden key supplies the authoritative policy-to-prompt mapping.  Drop the
+    # template copy before merging so the joined frame has one unambiguous ID column.
+    completed_for_join = completed.drop(columns=["xstest_id"], errors="ignore")
+    merged = completed_for_join.merge(key, on="audit_row_id", how="inner", validate="one_to_one")
     judged = judged_rows[["policy", "xstest_id", "judge_label"]]
     merged = merged.merge(judged, on=["policy", "xstest_id"], how="inner", validate="one_to_one")
     if len(merged) != len(completed):
