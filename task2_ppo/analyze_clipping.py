@@ -8,6 +8,7 @@ import torch
 from common.data import load_yaml, read_jsonl, repo_path
 from common.logging_utils import save_json
 from task2_ppo.continue_train import run_ppo
+from task2_ppo.evaluate import run_evaluation
 
 
 def load_cached_rollouts(path):
@@ -115,42 +116,38 @@ def run_clipping_forks(config_path: str, skip_forks: bool = False):
         run_name = f"clip_eps_{eps:.2f}".replace(".", "_")
         out_dir = f"outputs/task2_ppo/{run_name}"
         print(f"\n--- Starting fork: {run_name} (eps={eps}) ---")
-        run_ppo(
+        train_summary = run_ppo(
             config_path=config_path,
             output=out_dir,
             updates=fork_updates,
             clip_epsilon=eps,
             run_name=run_name,
         )
-
-        history_file = repo_path(out_dir).parent / f"{run_name}_train_history.jsonl"
-        if history_file.exists():
-            records = read_jsonl(history_file)
-            rewards = [r["reward_mean"] for r in records]
-            kls = [r["kl_mean"] for r in records]
-            entropies = [r["entropy"] for r in records]
-            clip_fracs = [r["clip_fraction"] for r in records]
-            grad_norms = [r["grad_norm"] for r in records]
-
-            fork_summaries[f"eps_{eps}"] = {
-                "clip_epsilon": eps,
-                "final_reward": rewards[-1] if rewards else None,
-                "mean_reward": float(np.mean(rewards)) if rewards else None,
-                "mean_kl": float(np.mean(kls)) if kls else None,
-                "mean_entropy": float(np.mean(entropies)) if entropies else None,
-                "mean_clip_fraction": float(np.mean(clip_fracs)) if clip_fracs else None,
-                "max_grad_norm": float(np.max(grad_norms)) if grad_norms else None,
-                "history_file": str(history_file),
-            }
+        heldout = run_evaluation(
+            config_path=config_path,
+            adapter=out_dir,
+            name=run_name,
+        )
+        fork_summaries[f"eps_{eps}"] = {
+            "clip_epsilon": eps,
+            "training": train_summary,
+            "heldout_reward": heldout["reward_mean"],
+            "heldout_kl": heldout["kl_mean"],
+            "heldout_entropy": heldout["entropy_mean"],
+            "heldout_response_length": heldout["response_length_mean"],
+            "heldout_truncation_rate": heldout["truncation_rate_at_cap"],
+            "stability_max_grad_norm": train_summary["max_grad_norm"],
+            "stability_mean_clip_fraction": train_summary["mean_clip_fraction"],
+        }
 
     summary_file = results_dir / "clipping_ablation_summary.json"
     save_json(summary_file, fork_summaries)
 
     print("\n=== Clipping Epsilon Ablation Summary ===")
-    print(f"{'Epsilon':<8} | {'Mean Reward':<12} | {'Mean KL':<10} | {'Mean Entropy':<12} | {'Mean Clip Frac':<16} | {'Max Grad Norm':<14}")
-    print("-" * 85)
+    print(f"{'Epsilon':<8} | {'Held-out Reward':<16} | {'Held-out KL':<12} | {'Held-out Length':<17} | {'Max Grad Norm':<14}")
+    print("-" * 92)
     for k, s in fork_summaries.items():
-        print(f"{s['clip_epsilon']:<8.2f} | {s['mean_reward']:<12.3f} | {s['mean_kl']:<10.4f} | {s['mean_entropy']:<12.3f} | {s['mean_clip_fraction']:<16.4f} | {s['max_grad_norm']:<14.3f}")
+        print(f"{s['clip_epsilon']:<8.2f} | {s['heldout_reward']:<16.3f} | {s['heldout_kl']:<12.4f} | {s['heldout_response_length']:<17.1f} | {s['stability_max_grad_norm']:<14.3f}")
     print(f"\nSaved clipping ablation summary to: {summary_file}")
     return fork_summaries
 

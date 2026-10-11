@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+import numpy as np
+
 from torch.optim import AdamW
 
 from common.data import load_yaml, prompt_messages, read_jsonl, repo_path
@@ -15,6 +17,36 @@ from common.models import (
     trainable_parameters,
     value_parameter_groups,
 )
+
+
+def summarize_ppo_history(records: list[dict], run_name: str, adapter_path: str | None = None) -> dict:
+    """Return the required continuation diagnostics from per-update records."""
+    if not records:
+        raise ValueError("Cannot summarize an empty PPO training history")
+
+    def mean(field: str) -> float:
+        return float(np.mean([row[field] for row in records]))
+
+    def maximum(field: str) -> float:
+        return float(np.max([row[field] for row in records]))
+
+    return {
+        "run_name": run_name,
+        "updates": len(records),
+        "final_reward": float(records[-1]["reward_mean"]),
+        "mean_reward": mean("reward_mean"),
+        "final_kl": float(records[-1]["kl_mean"]),
+        "mean_kl": mean("kl_mean"),
+        "mean_policy_loss": mean("policy_loss"),
+        "mean_value_loss": mean("value_loss"),
+        "mean_entropy": mean("entropy"),
+        "mean_clip_fraction": mean("clip_fraction"),
+        "mean_response_length": mean("response_length"),
+        "max_grad_norm": maximum("grad_norm"),
+        "wall_clock_time_seconds": float(records[-1]["wall_time_sec"]),
+        "peak_vram_gb": maximum("peak_vram_gb"),
+        "adapter_path": adapter_path,
+    }
 
 
 def prepare_ppo_continuation(config_path: str):
@@ -105,8 +137,11 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
     
     device = next(policy.parameters()).device
     timer = wall_timer()
-    history_file = out.parent / f"{run_name}_train_history.jsonl"
+    results_dir = repo_path(cfg.get("results_dir", "results/task2_ppo"))
+    results_dir.mkdir(parents=True, exist_ok=True)
+    history_file = results_dir / f"{run_name}_train_history.jsonl"
     if history_file.exists(): history_file.unlink()
+    records = []
 
     for step in range(updates):
         policy.eval()
@@ -180,13 +215,21 @@ def run_ppo(config_path: str, output: str | None = None, updates: int | None = N
             "peak_vram_gb": torch.cuda.max_memory_allocated() / (1024**3) if torch.cuda.is_available() else 0.0
         }
         append_jsonl(history_file, record)
+        records.append(record)
         print(f"Update {step+1}/{updates} | Reward: {record['reward_mean']:.3f} | KL: {record['kl_mean']:.3f} | Len: {record['response_length']:.1f}")
 
     policy.save_pretrained(str(out))
     tokenizer.save_pretrained(str(out))
     value_model.save_pretrained(str(out / "value_model"))
+    summary = summarize_ppo_history(records, run_name=run_name, adapter_path=str(out))
+    from common.logging_utils import save_json
+    summary_path = results_dir / f"{run_name}_train_summary.json"
+    save_json(summary_path, summary)
     print(f"PPO run '{run_name}' complete.")
+    print(f"Saved training history to: {history_file}")
+    print(f"Saved training summary to: {summary_path}")
     clear_gpu(policy, value_model, reward_model)
+    return summary
 
 
 def main():
