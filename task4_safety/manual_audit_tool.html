@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task 4 Manual Audit</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; color: #1e293b; background: #f8fafc; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; }
+    main { max-width: 1050px; margin: auto; }
+    h1 { margin: 0; font-size: 1.65rem; }
+    .subtle { color: #64748b; margin: .4rem 0 1.25rem; }
+    .panel { background: #fff; border: 1px solid #dbe3ee; border-radius: 14px; padding: 18px; box-shadow: 0 2px 12px #0f172a0a; }
+    #workspace { display: none; }
+    .topline, .actions, .meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .topline { justify-content: space-between; margin-bottom: 16px; }
+    .meta span { background: #eef2ff; color: #3730a3; border-radius: 99px; padding: 4px 9px; font-size: .84rem; }
+    .progress { width: min(310px, 100%); height: 10px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+    .progress > div { height: 100%; background: #4f46e5; transition: width .2s; }
+    .field-label { display: block; color: #475569; font-size: .8rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin: 20px 0 7px; }
+    .text-box { white-space: pre-wrap; line-height: 1.55; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; max-height: 280px; overflow: auto; }
+    .response { background: #fffdf5; border-color: #f5dfab; min-height: 140px; }
+    button, .file-label { appearance: none; border: 0; border-radius: 9px; padding: 10px 13px; font: inherit; font-weight: 650; cursor: pointer; background: #e2e8f0; color: #1e293b; }
+    button:hover, .file-label:hover { filter: brightness(.96); }
+    button.primary { background: #4f46e5; color: white; }
+    button.danger { background: #fee2e2; color: #991b1b; }
+    button.selected { outline: 3px solid #1d4ed8; outline-offset: 2px; }
+    .labels { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 8px; margin-top: 12px; }
+    .labels button { min-height: 52px; font-size: .86rem; }
+    .safe { background: #dcfce7; color: #166534; }.refusal { background: #dbeafe; color: #1d4ed8; }
+    .unsafe { background: #fee2e2; color: #991b1b; }.over { background: #ffedd5; color: #9a3412; }.ambiguous { background: #e5e7eb; color: #374151; }
+    input[type=file] { display: none; }
+    #message { min-height: 1.4em; color: #166534; font-weight: 600; margin-top: 12px; }
+    .hint { font-size: .9rem; color: #64748b; margin: 12px 0 0; }
+    @media (max-width: 700px) { body { padding: 14px; } .labels { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Task 4 Manual Safety Audit</h1>
+    <p class="subtle">This tool stays entirely in your browser. It never uploads responses or labels.</p>
+
+    <section class="panel" id="loader">
+      <h2>1. Load the blinded template</h2>
+      <p>Select <code>manual_audit_template.csv</code>. Do not load or view <code>manual_audit_key.csv</code> until your labels are complete.</p>
+      <label class="file-label" for="csvFile">Choose audit CSV</label>
+      <input id="csvFile" type="file" accept=".csv,text/csv">
+      <p class="hint">You will label each row as SAFE_ANSWER, OVER_REFUSAL, JUSTIFIED_REFUSAL, UNSAFE_COMPLIANCE, or AMBIGUOUS.</p>
+    </section>
+
+    <section class="panel" id="workspace">
+      <div class="topline">
+        <div>
+          <strong id="position">Row 1 of 240</strong>
+          <div class="progress" aria-label="Audit progress"><div id="progressBar"></div></div>
+        </div>
+        <div class="actions">
+          <button id="previous" type="button">← Previous</button>
+          <button id="next" type="button">Next →</button>
+          <button id="nextUnlabelled" type="button">Next unlabelled</button>
+          <button class="primary" id="download" type="button">Download completed CSV</button>
+        </div>
+      </div>
+
+      <div class="meta">
+        <span id="auditId"></span><span id="benchmarkClass"></span><span id="category"></span>
+      </div>
+      <span class="field-label">Prompt</span>
+      <div class="text-box" id="prompt"></div>
+      <span class="field-label">Assistant response</span>
+      <div class="text-box response" id="response"></div>
+      <span class="field-label">Your manual label</span>
+      <div class="labels" id="labels">
+        <button class="safe" data-label="SAFE_ANSWER" type="button">1 · SAFE_ANSWER</button>
+        <button class="over" data-label="OVER_REFUSAL" type="button">2 · OVER_REFUSAL</button>
+        <button class="refusal" data-label="JUSTIFIED_REFUSAL" type="button">3 · JUSTIFIED_REFUSAL</button>
+        <button class="unsafe" data-label="UNSAFE_COMPLIANCE" type="button">4 · UNSAFE_COMPLIANCE</button>
+        <button class="ambiguous" data-label="AMBIGUOUS" type="button">5 · AMBIGUOUS</button>
+      </div>
+      <p class="hint">Keyboard shortcuts: 1–5 label, ←/→ move, U jumps to the next unlabelled row. Labels are saved in this browser while you work.</p>
+      <div id="message" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'atml-task4-audit-v1';
+    let headers = [], rows = [], current = 0;
+    const required = ['audit_row_id', 'benchmark_class', 'type', 'prompt', 'response', 'manual_label'];
+
+    function parseCsv(text) {
+      const table = [[]]; let field = ''; let quoted = false; let endedRow = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i], next = text[i + 1];
+        if (ch === '"' && quoted && next === '"') { field += '"'; i++; endedRow = false; }
+        else if (ch === '"') { quoted = !quoted; endedRow = false; }
+        else if (ch === ',' && !quoted) { table.at(-1).push(field); field = ''; endedRow = false; }
+        else if ((ch === '\n' || ch === '\r') && !quoted) {
+          if (ch === '\r' && next === '\n') i++;
+          table.at(-1).push(field); field = '';
+          if (i + 1 < text.length) table.push([]);
+          endedRow = true;
+        } else { field += ch; endedRow = false; }
+      }
+      if (!endedRow) table.at(-1).push(field);
+      return table.filter(row => row.some(value => value !== ''));
+    }
+
+    function escapeCsv(value) { return `"${String(value ?? '').replaceAll('"', '""')}"`; }
+    function message(text) { document.getElementById('message').textContent = text; }
+    function persist() { localStorage.setItem(STORAGE_KEY, JSON.stringify({ headers, rows, current })); }
+
+    function render() {
+      const row = rows[current];
+      const completed = rows.filter(r => r.manual_label.trim()).length;
+      document.getElementById('position').textContent = `Row ${current + 1} of ${rows.length} · ${completed} labelled`;
+      document.getElementById('progressBar').style.width = `${rows.length ? completed / rows.length * 100 : 0}%`;
+      document.getElementById('auditId').textContent = row.audit_row_id;
+      document.getElementById('benchmarkClass').textContent = row.benchmark_class;
+      document.getElementById('category').textContent = row.type;
+      document.getElementById('prompt').textContent = row.prompt;
+      document.getElementById('response').textContent = row.response;
+      document.querySelectorAll('[data-label]').forEach(button => button.classList.toggle('selected', button.dataset.label === row.manual_label));
+      document.getElementById('previous').disabled = current === 0;
+      document.getElementById('next').disabled = current === rows.length - 1;
+      persist();
+    }
+
+    function setLabel(label) {
+      rows[current].manual_label = label;
+      message(`Saved ${label}.`);
+      if (current < rows.length - 1) current++;
+      render();
+    }
+
+    function nextUnlabelled() {
+      for (let offset = 1; offset <= rows.length; offset++) {
+        const index = (current + offset) % rows.length;
+        if (!rows[index].manual_label.trim()) { current = index; render(); return; }
+      }
+      message('All rows are labelled. Download the completed CSV.');
+    }
+
+    function download() {
+      const unlabelled = rows.filter(r => !r.manual_label.trim()).length;
+      if (unlabelled && !confirm(`${unlabelled} rows are still blank. Download anyway?`)) return;
+      const csv = [headers.map(escapeCsv).join(','), ...rows.map(row => headers.map(header => escapeCsv(row[header])).join(','))].join('\r\n');
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+      link.download = 'manual_audit_completed.csv'; link.click(); URL.revokeObjectURL(link.href);
+      message('Downloaded manual_audit_completed.csv.');
+    }
+
+    document.getElementById('csvFile').addEventListener('change', async event => {
+      const file = event.target.files[0]; if (!file) return;
+      const table = parseCsv(await file.text());
+      headers = table.shift().map(header => header.trim());
+      const missing = required.filter(header => !headers.includes(header));
+      if (missing.length) { alert(`This is not the audit template. Missing: ${missing.join(', ')}`); return; }
+      rows = table.map(values => Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ''])));
+      if (!rows.length) { alert('The CSV contains no audit rows.'); return; }
+      current = 0; localStorage.removeItem(STORAGE_KEY);
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('workspace').style.display = 'block'; render();
+    });
+    document.querySelectorAll('[data-label]').forEach(button => button.addEventListener('click', () => setLabel(button.dataset.label)));
+    document.getElementById('previous').addEventListener('click', () => { if (current) { current--; render(); } });
+    document.getElementById('next').addEventListener('click', () => { if (current < rows.length - 1) { current++; render(); } });
+    document.getElementById('nextUnlabelled').addEventListener('click', nextUnlabelled);
+    document.getElementById('download').addEventListener('click', download);
+    document.addEventListener('keydown', event => {
+      if (!rows.length || event.target.tagName === 'INPUT') return;
+      const labels = { '1': 'SAFE_ANSWER', '2': 'OVER_REFUSAL', '3': 'JUSTIFIED_REFUSAL', '4': 'UNSAFE_COMPLIANCE', '5': 'AMBIGUOUS' };
+      if (labels[event.key]) setLabel(labels[event.key]);
+      else if (event.key === 'ArrowLeft') document.getElementById('previous').click();
+      else if (event.key === 'ArrowRight') document.getElementById('next').click();
+      else if (event.key.toLowerCase() === 'u') nextUnlabelled();
+    });
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (saved?.headers?.length && saved?.rows?.length && confirm('Resume the labels saved in this browser?')) {
+        headers = saved.headers; rows = saved.rows;
+        current = Math.min(Math.max(saved.current || 0, 0), rows.length - 1);
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('workspace').style.display = 'block';
+        render();
+      }
+    } catch (_) { localStorage.removeItem(STORAGE_KEY); }
+  </script>
+</body>
+</html>
