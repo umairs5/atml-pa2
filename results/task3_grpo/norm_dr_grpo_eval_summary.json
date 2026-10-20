@@ -1,0 +1,14 @@
+{
+  "name": "norm_dr_grpo",
+  "adapter_path": "outputs/task3_grpo/norm_dr_grpo",
+  "num_eval_prompts": 200,
+  "reward_mean": 1.167,
+  "reward_std": 1.929,
+  "kl_mean": -0.0,
+  "kl_std": 0.0007,
+  "response_length_mean": 297.2,
+  "response_length_std": 254.3,
+  "response_length_iqr": 419.5,
+  "eos_termination_rate": 0.895,
+  "truncation_rate_at_cap": 0.105
+}

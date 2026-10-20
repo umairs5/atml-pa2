@@ -1,0 +1,16 @@
+{
+  "run_name": "norm_dr_grpo",
+  "loss_type": "dr_grpo",
+  "updates": 8,
+  "final_reward": 1.6235,
+  "mean_reward": 0.2363875,
+  "mean_group_std": 0.5757375,
+  "mean_uninformative_fraction": 0.125,
+  "mean_kl": 1.1250000000000002e-05,
+  "mean_entropy": 0.9864249999999999,
+  "mean_response_length": 106.86250000000001,
+  "max_grad_norm": 0.2868,
+  "wall_clock_time_seconds": 179.51,
+  "peak_vram_gb": 10.36,
+  "adapter_path": "/content/atml-pa2/outputs/task3_grpo/norm_dr_grpo"
+}

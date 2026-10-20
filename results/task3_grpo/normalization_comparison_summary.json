@@ -1,0 +1,38 @@
+{
+  "norm_canonical": {
+    "name": "norm_canonical",
+    "loss_type": "grpo",
+    "description": "Canonical GRPO (1/T_k)",
+    "updates": 8,
+    "heldout_reward_mean": 1.315,
+    "heldout_kl_mean": -0.0001,
+    "heldout_response_length_mean": 307.4,
+    "mean_reward": 0.19931249999999995,
+    "final_reward": 1.6235,
+    "mean_kl": 1.2500000000000002e-05,
+    "mean_entropy": 1.206225,
+    "mean_response_length": 125.95,
+    "max_grad_norm": 1.6197,
+    "mean_short_token_weight": 0.10175066499505192,
+    "mean_long_token_weight": 0.0050662682391703125,
+    "mean_short_to_long_token_weight": 2.6572545766830444
+  },
+  "norm_dr_grpo": {
+    "name": "norm_dr_grpo",
+    "loss_type": "dr_grpo",
+    "description": "Dr. GRPO (1/L_max)",
+    "updates": 8,
+    "heldout_reward_mean": 1.167,
+    "heldout_kl_mean": -0.0,
+    "heldout_response_length_mean": 297.2,
+    "mean_reward": 0.2363875,
+    "final_reward": 1.6235,
+    "mean_kl": 1.1250000000000002e-05,
+    "mean_entropy": 0.9864249999999999,
+    "mean_response_length": 106.86250000000001,
+    "max_grad_norm": 0.2868,
+    "mean_short_token_weight": 0.001953125,
+    "mean_long_token_weight": 0.001953125,
+    "mean_short_to_long_token_weight": 1.0
+  }
+}

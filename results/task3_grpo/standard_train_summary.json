@@ -1,0 +1,16 @@
+{
+  "run_name": "standard",
+  "loss_type": "grpo",
+  "updates": 20,
+  "final_reward": 2.4775,
+  "mean_reward": 0.908165,
+  "mean_group_std": 0.7993250000000002,
+  "mean_uninformative_fraction": 0.15,
+  "mean_kl": 1.2500000000000002e-05,
+  "mean_entropy": 0.7498949999999999,
+  "mean_response_length": 140.58499999999998,
+  "max_grad_norm": 2.4407,
+  "wall_clock_time_seconds": 475.76,
+  "peak_vram_gb": 10.36,
+  "adapter_path": "/content/atml-pa2/outputs/task3_grpo/standard"
+}

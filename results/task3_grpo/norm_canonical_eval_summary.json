@@ -1,0 +1,14 @@
+{
+  "name": "norm_canonical",
+  "adapter_path": "outputs/task3_grpo/norm_canonical",
+  "num_eval_prompts": 200,
+  "reward_mean": 1.315,
+  "reward_std": 1.91,
+  "kl_mean": -0.0001,
+  "kl_std": 0.0009,
+  "response_length_mean": 307.4,
+  "response_length_std": 252.1,
+  "response_length_iqr": 437.5,
+  "eos_termination_rate": 0.92,
+  "truncation_rate_at_cap": 0.08
+}

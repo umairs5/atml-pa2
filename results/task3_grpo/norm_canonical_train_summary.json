@@ -1,0 +1,16 @@
+{
+  "run_name": "norm_canonical",
+  "loss_type": "grpo",
+  "updates": 8,
+  "final_reward": 1.6235,
+  "mean_reward": 0.19931249999999995,
+  "mean_group_std": 0.6244375,
+  "mean_uninformative_fraction": 0.125,
+  "mean_kl": 1.2500000000000002e-05,
+  "mean_entropy": 1.206225,
+  "mean_response_length": 125.95,
+  "max_grad_norm": 1.6197,
+  "wall_clock_time_seconds": 169.15,
+  "peak_vram_gb": 10.36,
+  "adapter_path": "/content/atml-pa2/outputs/task3_grpo/norm_canonical"
+}
