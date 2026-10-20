@@ -2,13 +2,15 @@
   "name": "kl_beta_0_10",
   "adapter_path": "outputs/task2_ppo/kl_beta_0_10",
   "num_eval_prompts": 200,
-  "reward_mean": 1.175,
-  "reward_std": 2.028,
-  "kl_mean": 0.0001,
-  "kl_std": 0.0011,
-  "response_length_mean": 295.3,
-  "response_length_std": 244.5,
+  "reward_mean": 1.1753890991210938,
+  "reward_std": 2.0279317059529136,
+  "kl_mean": 5.762093340422325e-05,
+  "kl_std": 0.001052671923010769,
+  "entropy_mean": 1.060412569232285,
+  "entropy_std": 0.5417631639004686,
+  "response_length_mean": 295.335,
+  "response_length_std": 244.4549913071934,
   "response_length_iqr": 374.0,
-  "eos_termination_rate": 0.920,
-  "truncation_rate_at_cap": 0.080
+  "eos_termination_rate": 0.92,
+  "truncation_rate_at_cap": 0.08
 }

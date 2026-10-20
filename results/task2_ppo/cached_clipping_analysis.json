@@ -1,17 +1,23 @@
 {
   "eps_0.05": {
     "clip_epsilon": 0.05,
-    "clip_fraction": 0.1366,
-    "total_tokens_evaluated": 32
+    "clip_fraction": 0.13660086691379547,
+    "mean_ratio": 1.0013748407363892,
+    "std_ratio": 0.037667252123355865,
+    "total_tokens_evaluated": 8814
   },
   "eps_0.2": {
-    "clip_epsilon": 0.20,
-    "clip_fraction": 0.0026,
-    "total_tokens_evaluated": 32
+    "clip_epsilon": 0.2,
+    "clip_fraction": 0.0026094848290085793,
+    "mean_ratio": 1.0013748407363892,
+    "std_ratio": 0.037667252123355865,
+    "total_tokens_evaluated": 8814
   },
   "eps_0.5": {
-    "clip_epsilon": 0.50,
-    "clip_fraction": 0.0000,
-    "total_tokens_evaluated": 32
+    "clip_epsilon": 0.5,
+    "clip_fraction": 0.0,
+    "mean_ratio": 1.0013748407363892,
+    "std_ratio": 0.037667252123355865,
+    "total_tokens_evaluated": 8814
   }
 }

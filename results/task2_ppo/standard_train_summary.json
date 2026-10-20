@@ -1,0 +1,17 @@
+{
+  "run_name": "standard",
+  "updates": 20,
+  "final_reward": 2.8984375,
+  "mean_reward": 1.28734130859375,
+  "final_kl": 0.00017588070477358997,
+  "mean_kl": -0.00026566343003651125,
+  "mean_policy_loss": -5.95526671531843e-06,
+  "mean_value_loss": 2.2921120822429657,
+  "mean_entropy": 1.0667062565684318,
+  "mean_clip_fraction": 0.0,
+  "mean_response_length": 242.6,
+  "max_grad_norm": 5.685013294219971,
+  "wall_clock_time_seconds": 290.3817169590002,
+  "peak_vram_gb": 8.559592247009277,
+  "adapter_path": "/content/atml-pa2/outputs/task2_ppo/standard"
+}

@@ -1,0 +1,8 @@
+{"step": 1, "reward_mean": -2.428, "kl_mean": -0.001, "response_length": 14.0}
+{"step": 2, "reward_mean": 2.637, "kl_mean": -0.0, "response_length": 403.0}
+{"step": 3, "reward_mean": 1.772, "kl_mean": -0.0, "response_length": 4.0}
+{"step": 4, "reward_mean": 1.596, "kl_mean": -0.003, "response_length": 2.0}
+{"step": 5, "reward_mean": -4.375, "kl_mean": 0.0, "response_length": 456.0}
+{"step": 6, "reward_mean": 1.836, "kl_mean": -0.0, "response_length": 121.0}
+{"step": 7, "reward_mean": 2.357, "kl_mean": -0.0, "response_length": 512.0}
+{"step": 8, "reward_mean": 1.506, "kl_mean": -0.0, "response_length": 228.0}

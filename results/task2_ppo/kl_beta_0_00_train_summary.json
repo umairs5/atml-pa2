@@ -1,0 +1,17 @@
+{
+  "run_name": "kl_beta_0_00",
+  "updates": 8,
+  "final_reward": 1.505859375,
+  "mean_reward": 0.6126708984375,
+  "final_kl": -0.0002525959280319512,
+  "mean_kl": -0.0006203648922564753,
+  "mean_policy_loss": 0.000778939715019078,
+  "mean_value_loss": 2.6483200937509537,
+  "mean_entropy": 1.1219846084713936,
+  "mean_clip_fraction": 0.0,
+  "mean_response_length": 217.5,
+  "max_grad_norm": 2.540466785430908,
+  "wall_clock_time_seconds": 111.92559051699936,
+  "peak_vram_gb": 8.686137199401855,
+  "adapter_path": "/content/atml-pa2/outputs/task2_ppo/kl_beta_0_00"
+}
