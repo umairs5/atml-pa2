@@ -1,0 +1,24 @@
+{
+  "completed_rows": 240,
+  "agreement_rate": 0.7375,
+  "manual_ambiguous_rate": 0.008333333333333333,
+  "judge_ambiguous_rate": 0.0,
+  "by_policy": {
+    "dpo": {
+      "n": 60,
+      "agreement_rate": 0.75
+    },
+    "grpo": {
+      "n": 60,
+      "agreement_rate": 0.7166666666666667
+    },
+    "ppo": {
+      "n": 60,
+      "agreement_rate": 0.75
+    },
+    "sft": {
+      "n": 60,
+      "agreement_rate": 0.7333333333333333
+    }
+  }
+}
