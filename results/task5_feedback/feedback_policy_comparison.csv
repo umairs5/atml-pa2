@@ -1,0 +1,4 @@
+policy,gsm_exact_accuracy,gsm_format_compliance,gsm_mean_response_length,transfer_exact_accuracy,transfer_format_compliance,transfer_mean_response_length,exact_accuracy_drop,gsm_ai_win_rate_vs_sft,gsm_verifier_judge_agreement,transfer_ai_win_rate_vs_sft,transfer_verifier_judge_agreement
+sft,0.3233333333333333,0.4666666666666667,281.09,0.41,0.52,169.7,-0.08666666666666667,,,,
+rlvr,0.30666666666666664,0.39666666666666667,281.49,0.45,0.54,169.4,-0.14333333333333337,0.49666666666666665,0.5633333333333334,0.465,0.59
+rlaif,0.31,0.41333333333333333,275.95666666666665,0.55,0.66,154.6,-0.24000000000000005,0.5016666666666667,0.6233333333333333,0.445,0.58

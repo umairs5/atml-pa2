@@ -1,0 +1,173 @@
+{
+  "num_problems": 20,
+  "pairs_per_comparison": 20,
+  "by_variant": {
+    "corrupt_reasoning_correct_final": {
+      "rlvr": {
+        "pairs": 20,
+        "better_response_rate": 0.0,
+        "tie_rate": 1.0,
+        "wrong_preference_rate": 0.0,
+        "better_response_count": 0,
+        "tie_count": 20,
+        "wrong_preference_count": 0
+      },
+      "rlaif": {
+        "pairs": 20,
+        "better_response_rate": 0.0,
+        "tie_rate": 1.0,
+        "wrong_preference_rate": 0.0,
+        "better_response_count": 0,
+        "tie_count": 20,
+        "wrong_preference_count": 0
+      }
+    },
+    "good_reasoning_wrong_final": {
+      "rlvr": {
+        "pairs": 20,
+        "better_response_rate": 1.0,
+        "tie_rate": 0.0,
+        "wrong_preference_rate": 0.0,
+        "better_response_count": 20,
+        "tie_count": 0,
+        "wrong_preference_count": 0
+      },
+      "rlaif": {
+        "pairs": 20,
+        "better_response_rate": 0.0,
+        "tie_rate": 1.0,
+        "wrong_preference_rate": 0.0,
+        "better_response_count": 0,
+        "tie_count": 20,
+        "wrong_preference_count": 0
+      }
+    },
+    "persuasive_filler_correct": {
+      "rlvr": {
+        "pairs": 20,
+        "better_response_rate": 0.0,
+        "tie_rate": 1.0,
+        "wrong_preference_rate": 0.0,
+        "better_response_count": 0,
+        "tie_count": 20,
+        "wrong_preference_count": 0
+      },
+      "rlaif": {
+        "pairs": 20,
+        "better_response_rate": 0.0,
+        "tie_rate": 0.75,
+        "wrong_preference_rate": 0.25,
+        "better_response_count": 0,
+        "tie_count": 15,
+        "wrong_preference_count": 5
+      }
+    },
+    "gold_distractor_wrong_final": {
+      "rlvr": {
+        "pairs": 20,
+        "better_response_rate": 1.0,
+        "tie_rate": 0.0,
+        "wrong_preference_rate": 0.0,
+        "better_response_count": 20,
+        "tie_count": 0,
+        "wrong_preference_count": 0
+      },
+      "rlaif": {
+        "pairs": 20,
+        "better_response_rate": 0.25,
+        "tie_rate": 0.7,
+        "wrong_preference_rate": 0.05,
+        "better_response_count": 5,
+        "tie_count": 14,
+        "wrong_preference_count": 1
+      }
+    }
+  },
+  "reasoning_sensitivity": {
+    "rlvr": {
+      "pairs": 20,
+      "better_response_rate": 0.0,
+      "tie_rate": 1.0,
+      "wrong_preference_rate": 0.0,
+      "better_response_count": 0,
+      "tie_count": 20,
+      "wrong_preference_count": 0
+    },
+    "rlaif": {
+      "pairs": 20,
+      "better_response_rate": 0.0,
+      "tie_rate": 1.0,
+      "wrong_preference_rate": 0.0,
+      "better_response_count": 0,
+      "tie_count": 20,
+      "wrong_preference_count": 0
+    }
+  },
+  "outcome_sensitivity": {
+    "rlvr": {
+      "pairs": 40,
+      "better_response_rate": 1.0,
+      "tie_rate": 0.0,
+      "wrong_preference_rate": 0.0,
+      "better_response_count": 40,
+      "tie_count": 0,
+      "wrong_preference_count": 0
+    },
+    "rlaif": {
+      "pairs": 40,
+      "better_response_rate": 0.125,
+      "tie_rate": 0.85,
+      "wrong_preference_rate": 0.025,
+      "better_response_count": 5,
+      "tie_count": 34,
+      "wrong_preference_count": 1
+    }
+  },
+  "filler_susceptibility": {
+    "rlvr": {
+      "pairs": 20,
+      "better_response_rate": 0.0,
+      "tie_rate": 1.0,
+      "wrong_preference_rate": 0.0,
+      "better_response_count": 0,
+      "tie_count": 20,
+      "wrong_preference_count": 0
+    },
+    "rlaif": {
+      "pairs": 20,
+      "better_response_rate": 0.0,
+      "tie_rate": 0.75,
+      "wrong_preference_rate": 0.25,
+      "better_response_count": 0,
+      "tie_count": 15,
+      "wrong_preference_count": 5
+    }
+  },
+  "distractor_robustness": {
+    "rlvr": {
+      "pairs": 20,
+      "better_response_rate": 1.0,
+      "tie_rate": 0.0,
+      "wrong_preference_rate": 0.0,
+      "better_response_count": 20,
+      "tie_count": 0,
+      "wrong_preference_count": 0
+    },
+    "rlaif": {
+      "pairs": 20,
+      "better_response_rate": 0.25,
+      "tie_rate": 0.7,
+      "wrong_preference_rate": 0.05,
+      "better_response_count": 5,
+      "tie_count": 14,
+      "wrong_preference_count": 1
+    }
+  },
+  "exact_reward_by_variant": {
+    "clean_correct": 1.0,
+    "corrupt_reasoning_correct_final": 1.0,
+    "gold_distractor_wrong_final": 0.0,
+    "good_reasoning_wrong_final": 0.0,
+    "persuasive_filler_correct": 1.0
+  }
+}

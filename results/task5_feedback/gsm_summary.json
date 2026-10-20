@@ -1,0 +1,44 @@
+{
+  "dataset": "gsm",
+  "policies": {
+    "sft": {
+      "num_examples": 300,
+      "exact_accuracy": 0.3233333333333333,
+      "format_compliance": 0.4666666666666667,
+      "mean_response_length": 281.09,
+      "response_length_std": 100.35926414636567
+    },
+    "rlvr": {
+      "num_examples": 300,
+      "exact_accuracy": 0.30666666666666664,
+      "format_compliance": 0.39666666666666667,
+      "mean_response_length": 281.49,
+      "response_length_std": 100.36309032707194
+    },
+    "rlaif": {
+      "num_examples": 300,
+      "exact_accuracy": 0.31,
+      "format_compliance": 0.41333333333333333,
+      "mean_response_length": 275.95666666666665,
+      "response_length_std": 98.36138193191246
+    }
+  },
+  "pairwise_vs_sft": {
+    "rlvr": {
+      "comparisons": 300,
+      "ai_wins": 20,
+      "ai_losses": 22,
+      "ai_ties": 258,
+      "ai_win_rate_vs_sft": 0.49666666666666665,
+      "verifier_judge_agreement": 0.5633333333333334
+    },
+    "rlaif": {
+      "comparisons": 300,
+      "ai_wins": 19,
+      "ai_losses": 18,
+      "ai_ties": 263,
+      "ai_win_rate_vs_sft": 0.5016666666666667,
+      "verifier_judge_agreement": 0.6233333333333333
+    }
+  }
+}
